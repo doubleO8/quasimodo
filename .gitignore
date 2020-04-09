@@ -1,0 +1,15 @@
+*~
+*.pyc
+.DS_Store
+*.egg-info
+nosetests.xml
+MANIFEST
+/dist
+/.idea
+/.vscode
+build/
+/venv
+/venv3
+
+/monkeys.py
+/example_*.json

@@ -10,6 +10,7 @@ MANIFEST
 build/
 /venv
 /venv3
+/doc/make.bat
 
 /monkeys.py
 /example_*.json

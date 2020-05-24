@@ -17,7 +17,7 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     description="no description",
     long_description="no long description either",
-    url="https://localhost/quasimodo",
+    url="https://doubleo8.github.io/quasimodo/",
     packages=['quasimodo'],
     install_requires=[
         'pika>=1.1.0',

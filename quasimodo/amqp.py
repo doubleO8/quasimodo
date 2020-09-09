@@ -250,7 +250,8 @@ class QueueWorkerSkeleton(Quasimodo):
         deadletter_name = '{:s}-deadletter'.format(self.queue_name)
 
         self.log.info("Setting up exchange {:s}".format(exchange_name))
-        self.channel.exchange_declare(exchange=exchange_name, type='direct',
+        self.channel.exchange_declare(exchange=exchange_name, 
+                                      exchange_type='direct',
                                       durable=True)
 
         self.log.debug("Setting up deadletter queue {:s}".format(

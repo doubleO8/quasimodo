@@ -13,25 +13,26 @@ import quasimodo.base
 class QueueWorkerSkeletonTT(quasimodo.base.Q):
     DEFAULT_HOST = "localhost"
     DEFAULT_PORT = 15675
-    DEFAULT_USERNAME = 'guest'
-    DEFAULT_PASSWORD = 'guest'
+    DEFAULT_USERNAME = "guest"
+    DEFAULT_PASSWORD = "guest"
     DEFAULT_HEARTBEAT_INTERVAL = 60
-    DEFAULT_ENDPOINT = '/ws'
-    DEFAULT_BINDING_KEYS = ['*', '*.*']
+    DEFAULT_ENDPOINT = "/ws"
+    DEFAULT_BINDING_KEYS = ["*", "*.*"]
 
     def __init__(self, *args, **kwargs):
         quasimodo.base.Q.__init__(self, *args, **kwargs)
         self.log = logging.getLogger(__name__)
 
-        self.endpoint = kwargs.get("endpoint",
-                                   getattr(self, "DEFAULT_ENDPOINT"))
+        self.endpoint = kwargs.get("endpoint", getattr(self, "DEFAULT_ENDPOINT"))
         self.heartbeat_interval = kwargs.get("heartbeat_interval", 60)
         agent_id = str(uuid.uuid4())
 
         self.exchange_binding_keys = kwargs.get("binding_keys")
 
         self.connected = False
-        self.client = Client(client_id=agent_id, transport="websockets")
+        if self.transport is None:
+            self.transport = "websockets"
+        self.client = Client(client_id=agent_id, transport=self.transport)
         self.client.ws_set_options(self.endpoint)
         self.client.on_connect = self.__on_connect
         self.client.on_message = self.callback
@@ -47,13 +48,14 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
 
     def __on_connect(self, client, userdata, flags, rc):
         self.log.debug("on connect ... (rc={!r})".format(rc))
-        self.connected = (rc == 0)
+        self.connected = rc == 0
 
         if self.connected:
             if not self.exchange_binding_keys:
                 self.exchange_binding_keys = self.DEFAULT_BINDING_KEYS
-                self.log.warning("Using default binding keys {!r}".format(
-                    self.exchange_binding_keys))
+                self.log.warning(
+                    "Using default binding keys {!r}".format(self.exchange_binding_keys)
+                )
 
             for binding_key in self.exchange_binding_keys:
                 client.subscribe(binding_key)
@@ -65,8 +67,7 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
             print(repr(message.payload))
             return
 
-        self.handle_request(payload,
-                            client=client, userdata=userdata, message=message)
+        self.handle_request(payload, client=client, userdata=userdata, message=message)
 
     def __on_subscribe(self, client, userdata, mid, granted_qos):
         self.log.debug("on subscribe ...")
@@ -76,8 +77,7 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
         # print(granted_qos)
 
     def run(self):
-        self.client.connect(self.host, self.port,
-                            keepalive=self.heartbeat_interval)
+        self.client.connect(self.host, self.port, keepalive=self.heartbeat_interval)
         self.client.loop_start()
 
         self._start_consuming()
@@ -86,32 +86,37 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
         net_loc = "{username!s}:{password!s}@{host}:{port}".format(
             username=self.client._username,
             password=self.client._password,
-            host=self.host, port=self.port
+            host=self.host,
+            port=self.port,
         )
 
         exchange_binding_keys = self.exchange_binding_keys
         if exchange_binding_keys is None:
             exchange_binding_keys = self.DEFAULT_BINDING_KEYS
 
-        listening_to = '{path} ({binding_keys})'.format(
-            path=self.client._websocket_path,
-            binding_keys='; '.join(sorted(exchange_binding_keys)))
+        path_indicator = ""
+        if self.transport == "websockets":
+            path_indicator = f"{self.client._websocket_path} "
+        listening_to = "{path_indicator}({binding_keys})".format(
+            path_indicator=path_indicator,
+            binding_keys="; ".join(sorted(exchange_binding_keys)),
+        )
 
-        self.log.info("The monkeys are listening to {:s} {:s}".format(
-            net_loc, listening_to))
+        self.log.info(
+            "The monkeys are listening to {:s} {:s}".format(net_loc, listening_to)
+        )
 
         while True:
             time.sleep(0.5)
 
-    def simple_publish(self, payload, routing_key='', **kwargs):
-        sp_client_id = 'spc-' + str(uuid.uuid4())
+    def simple_publish(self, payload, routing_key="", **kwargs):
+        sp_client_id = "spc-" + str(uuid.uuid4())
         sp_client = Client(client_id=sp_client_id, transport="websockets")
         sp_client.ws_set_options(self.endpoint)
         sp_client.username_pw_set(self.credentials[0], self.credentials[1])
         if self.tls_context:
             sp_client.tls_set_context(self.tls_context)
-        sp_client.connect(self.host, self.port,
-                          keepalive=self.heartbeat_interval)
+        sp_client.connect(self.host, self.port, keepalive=self.heartbeat_interval)
 
         sp_client.loop_start()
 

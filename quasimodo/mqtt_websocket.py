@@ -111,7 +111,7 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
 
     def simple_publish(self, payload, routing_key="", **kwargs):
         sp_client_id = "spc-" + str(uuid.uuid4())
-        sp_client = Client(client_id=sp_client_id, transport="websockets")
+        sp_client = Client(client_id=sp_client_id, transport=self.transport)
         sp_client.ws_set_options(self.endpoint)
         sp_client.username_pw_set(self.credentials[0], self.credentials[1])
         if self.tls_context:

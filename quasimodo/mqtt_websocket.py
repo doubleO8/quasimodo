@@ -37,7 +37,12 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
         self.client.on_connect = self.__on_connect
         self.client.on_message = self.callback
         self.client.on_subscribe = self.__on_subscribe
-        self.client.username_pw_set(self.credentials[0], self.credentials[1])
+
+        if self.tls_context:
+            self.log.warning("Not setting credentials")
+        else:
+            self.client.username_pw_set(self.credentials[0], self.credentials[1])
+
         self.client.enable_logger()
 
         if self.tls_context:

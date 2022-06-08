@@ -31,6 +31,7 @@ class Q(object):
             "identifier",
             "Q-{:s}/{!s}".format(self.__class__.__name__, quasimodo.__version__),
         )
+
         if kwargs.get("tls_context"):
             self.tls_context = kwargs.get("tls_context")
         elif kwargs.get("tls"):
@@ -40,11 +41,13 @@ class Q(object):
                 kwargs.get("keyfile"),
                 kwargs.get("certfile"),
             )
+
             if None in (cafile, keyfile, certfile):
                 self.log.info(f"No certificates based TLS ..")
             else:
                 if kwargs.get("alpn_amz"):
                     self.tls_context.set_alpn_protocols(["x-amzn-mqtt-ca"])
+
                 self.tls_context.load_verify_locations(cafile=cafile)
                 self.tls_context.load_cert_chain(certfile=certfile, keyfile=keyfile)
 

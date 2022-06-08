@@ -120,9 +120,6 @@ def hunchback_client():
         action="append",
         help="Subscriptions",
     )
-    connection_group.add_argument(
-        "--no-tls", dest="tls", default=True, action="store_false", help="Disable TLS"
-    )
 
     amqp_group = parser.add_argument_group("AMQP Connection Options")
     amqp_group_queue = amqp_group.add_mutually_exclusive_group()
@@ -142,6 +139,9 @@ def hunchback_client():
     )
 
     tls_group = parser.add_argument_group("TLS Options")
+    tls_group.add_argument(
+        "--no-tls", dest="tls", default=True, action="store_false", help="Disable TLS"
+    )
     tls_group.add_argument(
         "--tls-ca",
         dest="cafile",

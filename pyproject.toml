@@ -6,7 +6,7 @@ authors = ["doubleO8 <wb008@hdm-stuttgart.de>"]
 license = "GPL"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.7,<3.10"
 pika = "^1.2.1"
 paho-mqtt = "^1.6.1"
 

@@ -13,8 +13,8 @@ import quasimodo.base
 class QueueWorkerSkeletonTT(quasimodo.base.Q):
     DEFAULT_HOST = "localhost"
     DEFAULT_PORT = 15675
-    DEFAULT_USERNAME = "guest"
-    DEFAULT_PASSWORD = "guest"
+    DEFAULT_USERNAME = None
+    DEFAULT_PASSWORD = None
     DEFAULT_HEARTBEAT_INTERVAL = 60
     DEFAULT_ENDPOINT = "/ws"
     DEFAULT_BINDING_KEYS = ["*", "*.*"]
@@ -38,10 +38,7 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
         self.client.on_message = self.callback
         self.client.on_subscribe = self.__on_subscribe
 
-        if self.tls_context:
-            self.log.warning("Not setting credentials")
-        else:
-            self.client.username_pw_set(self.credentials[0], self.credentials[1])
+        self.client.username_pw_set(self.credentials[0], self.credentials[1])
 
         self.client.enable_logger()
 

@@ -118,8 +118,7 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
 
         if self.tls_context:
             sp_client.tls_set_context(self.tls_context)
-        else:
-            sp_client.username_pw_set(self.credentials[0], self.credentials[1])
+        sp_client.username_pw_set(self.credentials[0], self.credentials[1])
         sp_client.connect(self.host, self.port, keepalive=self.heartbeat_interval)
 
         sp_client.loop_start()

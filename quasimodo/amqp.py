@@ -281,7 +281,7 @@ class QueueWorkerSkeleton(Quasimodo):
         if self.exchange_name is not False:
             listening_to += ' ({:s})'.format(
                 '; '.join(sorted(self.exchange_binding_keys)))
-        self.log.info("The monkeys are listening to {:s} {:s}".format(
+        self.log.debug("The monkeys are listening to {:s} {:s}".format(
             net_loc, listening_to))
 
         self.channel.start_consuming()

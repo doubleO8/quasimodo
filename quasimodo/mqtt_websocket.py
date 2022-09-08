@@ -104,7 +104,7 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
             binding_keys="; ".join(sorted(exchange_binding_keys)),
         )
 
-        self.log.info(
+        self.log.debug(
             "The monkeys are listening to {:s} {:s}".format(net_loc, listening_to)
         )
 

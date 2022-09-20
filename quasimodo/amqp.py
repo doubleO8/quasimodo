@@ -187,37 +187,6 @@ class QueueWorkerSkeleton(Quasimodo):
         if self.autorun:
             self.run()
 
-    def set_environment_variables(self, fallback_values=None, dump=False):
-        """
-        .. deprecated:: 0.0.0
-
-        Args:
-            fallback_values:
-            dump:
-
-        Returns:
-
-        """
-        if fallback_values is None:
-            fallback_values = {
-                "LANG": "C.UTF-8",
-                "PYTHONIOENCODING": "UTF-8",
-            }
-
-        for key in fallback_values:
-            if key not in os.environ.keys():
-                self.log.debug(
-                    "Setting LANG={value}".format(value=fallback_values[key])
-                )
-                os.environ[key] = fallback_values[key]
-
-        if dump:
-            self.log.info("Environment:")
-            for key in sorted(os.environ.keys()):
-                self.log.info(
-                    "{key:40s}: {value!r}".format(key=key, value=os.environ[key])
-                )
-
     def run(self):
         """
         Set up exchange/queue (blocking) and start consuming.

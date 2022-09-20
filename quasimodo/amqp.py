@@ -12,7 +12,7 @@ import pika
 import quasimodo
 import quasimodo.base
 
-MIMETYPE_JSON = 'application/json'
+MIMETYPE_JSON = "application/json"
 
 #: fallback queue
 DEFAULT_QUEUE = "quasimodo"
@@ -22,10 +22,10 @@ class Quasimodo(quasimodo.base.Q):
     #: default rabbitMQ parameters
     DEFAULT_HOST = "localhost"
     DEFAULT_PORT = 5671
-    DEFAULT_USERNAME = 'guest'
-    DEFAULT_PASSWORD = 'guest'
+    DEFAULT_USERNAME = "guest"
+    DEFAULT_PASSWORD = "guest"
     DEFAULT_HEARTBEAT_INTERVAL = 1800
-    DEFAULT_BINDING_KEYS = ['*']
+    DEFAULT_BINDING_KEYS = ["*"]
 
     def __init__(self, *args, **kwargs):
         quasimodo.base.Q.__init__(self, *args, **kwargs)
@@ -35,19 +35,25 @@ class Quasimodo(quasimodo.base.Q):
             self.ssl_options = pika.SSLOptions(self.tls_context, self.host)
 
     def set_credentials(self, username, password):
-        self._credentials = pika.PlainCredentials(
-            username=username, password=password)
+        self._credentials = pika.PlainCredentials(username=username, password=password)
 
-    def add_to_queue(self, payload, queue=DEFAULT_QUEUE,
-                     content_type=MIMETYPE_JSON, arguments=None,
-                     correlation_id=None, reply_to=None, durable=False):
+    def add_to_queue(
+        self,
+        payload,
+        queue=DEFAULT_QUEUE,
+        content_type=MIMETYPE_JSON,
+        arguments=None,
+        correlation_id=None,
+        reply_to=None,
+        durable=False,
+    ):
         """
         Request adding of *payload* to the queue named *queue*.
         """
         transaction_id = uuid.uuid4().hex
 
-        payload['transaction_id'] = transaction_id
-        payload['queue'] = queue
+        payload["transaction_id"] = transaction_id
+        payload["queue"] = queue
 
         if content_type == MIMETYPE_JSON:
             payload = json.dumps(payload)
@@ -56,7 +62,9 @@ class Quasimodo(quasimodo.base.Q):
         self.log.debug(pprint.pformat(payload))
 
         connection_parameters = pika.ConnectionParameters(
-            host=self.host, port=self.port, credentials=self.credentials,
+            host=self.host,
+            port=self.port,
+            credentials=self.credentials,
             ssl_options=self.ssl_options,
         )
         connection = pika.BlockingConnection(connection_parameters)
@@ -67,35 +75,40 @@ class Quasimodo(quasimodo.base.Q):
             delivery_mode=2,
             content_type=content_type,
             correlation_id=correlation_id,
-            reply_to=reply_to
+            reply_to=reply_to,
         )
 
         if arguments:
-            channel.queue_declare(queue=queue, durable=True,
-                                  arguments=arguments)
+            channel.queue_declare(queue=queue, durable=True, arguments=arguments)
         elif durable:
             channel.queue_declare(queue=queue, durable=True)
         else:
             channel.queue_declare(queue=queue, passive=True)
 
         channel.basic_publish(
-            exchange='', routing_key=queue, body=payload,
-            properties=properties)
+            exchange="", routing_key=queue, body=payload, properties=properties
+        )
 
         connection.close()
 
         return transaction_id
 
-    def add_to_exchange(self, payload, routing_key='', exchange='amq.topic',
-                        content_type=MIMETYPE_JSON, exchange_type='direct',
-                        arguments=None):
+    def add_to_exchange(
+        self,
+        payload,
+        routing_key="",
+        exchange="amq.topic",
+        content_type=MIMETYPE_JSON,
+        exchange_type="direct",
+        arguments=None,
+    ):
         """
         Request adding of *payload* to the exchange named *exchange*.
         """
         transaction_id = uuid.uuid4().hex
 
-        payload['transaction_id'] = transaction_id
-        payload['exchange'] = exchange
+        payload["transaction_id"] = transaction_id
+        payload["exchange"] = exchange
         if content_type == MIMETYPE_JSON:
             payload = json.dumps(payload)
 
@@ -103,7 +116,9 @@ class Quasimodo(quasimodo.base.Q):
         self.log.debug(pprint.pformat(payload))
 
         connection_parameters = pika.ConnectionParameters(
-            host=self.host, port=self.port, credentials=self.credentials,
+            host=self.host,
+            port=self.port,
+            credentials=self.credentials,
             ssl_options=self.ssl_options,
         )
         connection = pika.BlockingConnection(connection_parameters)
@@ -116,16 +131,23 @@ class Quasimodo(quasimodo.base.Q):
         )
 
         if arguments:
-            channel.exchange_declare(exchange=exchange, durable=True,
-                                     arguments=arguments,
-                                     exchange_type=exchange_type)
+            channel.exchange_declare(
+                exchange=exchange,
+                durable=True,
+                arguments=arguments,
+                exchange_type=exchange_type,
+            )
         else:
-            channel.exchange_declare(exchange=exchange, passive=True,
-                                     exchange_type=exchange_type)
+            channel.exchange_declare(
+                exchange=exchange, passive=True, exchange_type=exchange_type
+            )
 
         channel.basic_publish(
-            exchange=exchange, routing_key=routing_key, body=payload,
-            properties=properties)
+            exchange=exchange,
+            routing_key=routing_key,
+            body=payload,
+            properties=properties,
+        )
 
         connection.close()
 
@@ -135,7 +157,7 @@ class Quasimodo(quasimodo.base.Q):
     def qcc(self):
         return self
 
-    def simple_publish(self, payload, routing_key='', **kwargs):
+    def simple_publish(self, payload, routing_key="", **kwargs):
         return self.add_to_exchange(payload, routing_key=routing_key, **kwargs)
 
 
@@ -149,12 +171,15 @@ class QueueWorkerSkeleton(Quasimodo):
         self.log = logging.getLogger(kwargs.get("log_name", __name__))
         self.queue_name = kwargs.get("queue", False)
         self.exchange_name = kwargs.get("exchange", False)
-        self.exchange_type = kwargs.get("exchange_type", 'topic')
+        self.exchange_type = kwargs.get("exchange_type", "topic")
         self.exchange_binding_keys = kwargs.get("binding_keys")
         self.requeue_default = kwargs.get("requeue_default", False)
         self.max_consumed_messages = kwargs.get("max_consumed_messages", -1)
         self.deadletter_support = kwargs.get("deadletter_support", False)
         self.queue_declare_arguments = kwargs.get("queue_declare_arguments")
+        self.exchange_queue_declare_arguments = kwargs.get(
+            "exchange_queue_declare_arguments"
+        )
         self.consumed_count = 0
         self.channel = None
         self.connection = None
@@ -175,28 +200,32 @@ class QueueWorkerSkeleton(Quasimodo):
         """
         if fallback_values is None:
             fallback_values = {
-                'LANG': "C.UTF-8",
-                'PYTHONIOENCODING': 'UTF-8',
+                "LANG": "C.UTF-8",
+                "PYTHONIOENCODING": "UTF-8",
             }
 
         for key in fallback_values:
             if key not in os.environ.keys():
                 self.log.debug(
-                    "Setting LANG={value}".format(value=fallback_values[key]))
+                    "Setting LANG={value}".format(value=fallback_values[key])
+                )
                 os.environ[key] = fallback_values[key]
 
         if dump:
             self.log.info("Environment:")
             for key in sorted(os.environ.keys()):
-                self.log.info('{key:40s}: {value!r}'.format(
-                    key=key, value=os.environ[key]))
+                self.log.info(
+                    "{key:40s}: {value!r}".format(key=key, value=os.environ[key])
+                )
 
     def run(self):
         """
-        Set up queue and start consuming.
+        Set up exchange/queue (blocking) and start consuming.
         """
         connection_parameters = pika.ConnectionParameters(
-            host=self.host, port=self.port, credentials=self.credentials,
+            host=self.host,
+            port=self.port,
+            credentials=self.credentials,
             heartbeat=self.heartbeat_interval,
             connection_attempts=10,
             ssl_options=self.ssl_options,
@@ -207,34 +236,44 @@ class QueueWorkerSkeleton(Quasimodo):
         if self.exchange_name is not False:
             if not self.exchange_binding_keys:
                 self.exchange_binding_keys = self.DEFAULT_BINDING_KEYS
-                self.log.warning("Using default binding keys {!r}".format(
-                    self.exchange_binding_keys))
+                self.log.warning(
+                    f"Using default binding keys {self.exchange_binding_keys!r}"
+                )
 
             self.channel.exchange_declare(
-                exchange=self.exchange_name, exchange_type=self.exchange_type,
-                arguments=self.queue_declare_arguments, durable=True)
-            result = self.channel.queue_declare('', exclusive=True)
+                exchange=self.exchange_name,
+                exchange_type=self.exchange_type,
+                arguments=self.queue_declare_arguments,
+                durable=True,
+            )
+
+            result = self.channel.queue_declare(
+                "",
+                exclusive=True,
+                arguments=self.exchange_queue_declare_arguments,
+            )
             self.queue_name = result.method.queue
 
             for binding_key in self.exchange_binding_keys:
                 self.channel.queue_bind(
-                    exchange=self.exchange_name, queue=self.queue_name,
-                    routing_key=binding_key)
-
-            self.channel.basic_qos(prefetch_count=1)
-            self.channel.basic_consume(
-                on_message_callback=self.callback, queue=self.queue_name)
+                    exchange=self.exchange_name,
+                    queue=self.queue_name,
+                    routing_key=binding_key,
+                )
         else:
             if self.deadletter_support:
                 self._setup_deadletter_exchange()
             else:
                 self.channel.queue_declare(
-                    queue=self.queue_name, durable=True,
-                    arguments=self.queue_declare_arguments)
+                    queue=self.queue_name,
+                    durable=True,
+                    arguments=self.queue_declare_arguments,
+                )
 
         self.channel.basic_qos(prefetch_count=1)
         self.channel.basic_consume(
-            on_message_callback=self.callback, queue=self.queue_name)
+            on_message_callback=self.callback, queue=self.queue_name
+        )
 
         self._start_consuming()
 
@@ -246,16 +285,15 @@ class QueueWorkerSkeleton(Quasimodo):
             self.log.debug("No dead letter support")
             return
 
-        exchange_name = '{:s}-dlx'.format(self.queue_name)
-        deadletter_name = '{:s}-deadletter'.format(self.queue_name)
+        exchange_name = "{:s}-dlx".format(self.queue_name)
+        deadletter_name = "{:s}-deadletter".format(self.queue_name)
 
         self.log.info("Setting up exchange {:s}".format(exchange_name))
-        self.channel.exchange_declare(exchange=exchange_name, 
-                                      exchange_type='direct',
-                                      durable=True)
+        self.channel.exchange_declare(
+            exchange=exchange_name, exchange_type="direct", durable=True
+        )
 
-        self.log.debug("Setting up deadletter queue {:s}".format(
-            deadletter_name))
+        self.log.debug("Setting up deadletter queue {:s}".format(deadletter_name))
         self.channel.queue_declare(queue=deadletter_name, durable=True)
 
         arguments = {
@@ -264,8 +302,9 @@ class QueueWorkerSkeleton(Quasimodo):
             # if not specified, queue's routing-key is used
             "x-dead-letter-routing-key": self.queue_name,
         }
-        self.channel.queue_declare(queue=self.queue_name, durable=True,
-                                   arguments=arguments)
+        self.channel.queue_declare(
+            queue=self.queue_name, durable=True, arguments=arguments
+        )
 
     def _start_consuming(self):
         """
@@ -275,14 +314,17 @@ class QueueWorkerSkeleton(Quasimodo):
         net_loc = "{username!s}:{password!s}@{host}:{port}".format(
             username=self._credentials.username,
             password=self._credentials.password,
-            host=self.host, port=self.port
+            host=self.host,
+            port=self.port,
         )
-        listening_to = '{queue}'.format(queue=self.queue_name)
+        listening_to = "{queue}".format(queue=self.queue_name)
         if self.exchange_name is not False:
-            listening_to += ' ({:s})'.format(
-                '; '.join(sorted(self.exchange_binding_keys)))
-        self.log.debug("The monkeys are listening to {:s} {:s}".format(
-            net_loc, listening_to))
+            listening_to += " ({:s})".format(
+                "; ".join(sorted(self.exchange_binding_keys))
+            )
+        self.log.debug(
+            "The monkeys are listening to {:s} {:s}".format(net_loc, listening_to)
+        )
 
         self.channel.start_consuming()
 
@@ -320,7 +362,7 @@ class QueueWorkerSkeleton(Quasimodo):
         else:
             payload = copy.copy(body)
             try:
-                del payload['transaction_id']
+                del payload["transaction_id"]
             except Exception:
                 pass
 
@@ -328,57 +370,60 @@ class QueueWorkerSkeleton(Quasimodo):
                 self.log.debug("now handling request")
                 handle_request_result = self.handle_request(
                     payload=payload,
-                    channel=channel, method=method, properties=properties)
+                    channel=channel,
+                    method=method,
+                    properties=properties,
+                )
             except Exception as exception:
-                self.log_traceback("execution (QueueWorkerSkeleton.callback)",
-                                   exception)
+                self.log_traceback(
+                    "execution (QueueWorkerSkeleton.callback)", exception
+                )
 
         try:
             success = handle_request_result.get("success")
             response_payload = handle_request_result
         except AttributeError:
             success = handle_request_result
-            response_payload['success'] = handle_request_result
+            response_payload["success"] = handle_request_result
         except NameError as nexc:
             self.log_traceback("UH-OH! execution (QueueWorkerSkeleton)", nexc)
             success = False
             requeue = False
 
-        response_payload['__request_payload'] = payload
+        response_payload["__request_payload"] = payload
 
-        self._confirm_callback(channel, method, properties,
-                               response_payload)
+        self._confirm_callback(channel, method, properties, response_payload)
 
         if success:
             self.log.debug("Success.")
             channel.basic_ack(delivery_tag=method.delivery_tag)
         else:
             self.log.warning(
-                "{!s}: Failure, Abort. requeue={!r}".format(self.identifier,
-                                                            requeue))
+                "{!s}: Failure, Abort. requeue={!r}".format(self.identifier, requeue)
+            )
             self.log.info("payload:")
             self.log.info("-" * 40)
             self.log_data_dump(body)
             self.log.info("~" * 40)
 
             if not self.deadletter_support:
-                channel.basic_nack(delivery_tag=method.delivery_tag,
-                                   requeue=requeue)
+                channel.basic_nack(delivery_tag=method.delivery_tag, requeue=requeue)
             else:
                 delivery_tag = method.delivery_tag
                 requeue = False
                 self.log.info(
                     "basic_reject: delivery_tag={delivery_tag} requeue={requeue}".format(
-                        delivery_tag=delivery_tag, requeue=requeue))
-                channel.basic_reject(delivery_tag=delivery_tag,
-                                     requeue=requeue)
+                        delivery_tag=delivery_tag, requeue=requeue
+                    )
+                )
+                channel.basic_reject(delivery_tag=delivery_tag, requeue=requeue)
 
         if self.max_consumed_messages != -1:
             if self.consumed_count >= self.max_consumed_messages:
                 try:
-                    current_identifier = ' ({:s})'.format(self.identifier)
+                    current_identifier = " ({:s})".format(self.identifier)
                 except Exception:
-                    current_identifier = ''
+                    current_identifier = ""
                 self.log.info("Stop consuming{:s}".format(current_identifier))
                 channel.stop_consuming()
 
@@ -395,27 +440,30 @@ class QueueWorkerSkeleton(Quasimodo):
             mfg = "[{reply_to}] corr'n_id={correlation_id}: {payload}".format(
                 reply_to=properties.reply_to,
                 correlation_id=properties.correlation_id,
-                payload=pprint.pformat(payload))
+                payload=pprint.pformat(payload),
+            )
             self.log.info(mfg)
 
             pika_properties = pika.BasicProperties(
-                correlation_id=properties.correlation_id,
-                content_type=MIMETYPE_JSON)
+                correlation_id=properties.correlation_id, content_type=MIMETYPE_JSON
+            )
 
             try:
                 payload_json = json.dumps(payload)
             except TypeError as texception:
                 payload_dummy = {
-                    '_exception': True,
-                    '_payload': pprint.pformat(payload)
+                    "_exception": True,
+                    "_payload": pprint.pformat(payload),
                 }
                 self.log_traceback("JSON conversion failed", texception)
                 payload_json = json.dumps(payload_dummy)
 
-            channel.basic_publish(exchange='',
-                                  routing_key=properties.reply_to,
-                                  properties=pika_properties,
-                                  body=payload_json)
+            channel.basic_publish(
+                exchange="",
+                routing_key=properties.reply_to,
+                properties=pika_properties,
+                body=payload_json,
+            )
             return True
         except Exception as exception:
             self.log_traceback("confirm callback", exception)

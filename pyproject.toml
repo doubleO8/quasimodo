@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quasimodo"
-version = "0.7.4"
+version = "0.7.5"
 description = "AMQP and MQTT over WebSocket Queue Clients"
 authors = ["doubleO8 <wb008@hdm-stuttgart.de>"]
 license = "GPL"

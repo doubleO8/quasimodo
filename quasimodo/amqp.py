@@ -14,6 +14,8 @@ import quasimodo.base
 
 MIMETYPE_JSON = "application/json"
 
+MIMETYPE_BINARY = "application/octet-stream"
+
 #: fallback queue
 DEFAULT_QUEUE = "quasimodo"
 
@@ -246,6 +248,33 @@ class QueueWorkerSkeleton(Quasimodo):
 
         self._start_consuming()
 
+    def __add_to_exchange(
+        self,
+        payload,
+        routing_key="",
+        exchange="amq.topic",
+        content_type=MIMETYPE_BINARY,
+        **kwargs,
+    ):
+        """
+        Request adding of *payload* to the exchange named *exchange*.
+        """
+        if not kwargs.get("properties"):
+            properties = pika.BasicProperties(
+                # make message persistent
+                delivery_mode=2,
+                content_type=content_type,
+            )
+        else:
+            properties = kwargs.get("properties")
+
+        self.channel.basic_publish(
+            exchange=exchange,
+            routing_key=routing_key,
+            body=payload,
+            properties=properties,
+        )
+
     def _setup_deadletter_exchange(self):
         """
         Add dead letter exchange handling if enabled.
@@ -438,4 +467,5 @@ class QueueWorkerSkeleton(Quasimodo):
             self.log_traceback("confirm callback", exception)
 
         self.log.warn("FAIL!")
+
         return False

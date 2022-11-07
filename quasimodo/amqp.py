@@ -95,6 +95,33 @@ class Quasimodo(quasimodo.base.Q):
 
         return transaction_id
 
+    def _add_to_exchange(
+        self,
+        payload,
+        routing_key="",
+        exchange="amq.topic",
+        content_type=MIMETYPE_BINARY,
+        **kwargs,
+    ):
+        """
+        Request adding of *payload* to the exchange named *exchange*.
+        """
+        if not kwargs.get("properties"):
+            properties = pika.BasicProperties(
+                # make message persistent
+                delivery_mode=2,
+                content_type=content_type,
+            )
+        else:
+            properties = kwargs.get("properties")
+
+        self.channel.basic_publish(
+            exchange=exchange,
+            routing_key=routing_key,
+            body=payload,
+            properties=properties,
+        )
+
     def add_to_exchange(
         self,
         payload,
@@ -247,33 +274,6 @@ class QueueWorkerSkeleton(Quasimodo):
         )
 
         self._start_consuming()
-
-    def __add_to_exchange(
-        self,
-        payload,
-        routing_key="",
-        exchange="amq.topic",
-        content_type=MIMETYPE_BINARY,
-        **kwargs,
-    ):
-        """
-        Request adding of *payload* to the exchange named *exchange*.
-        """
-        if not kwargs.get("properties"):
-            properties = pika.BasicProperties(
-                # make message persistent
-                delivery_mode=2,
-                content_type=content_type,
-            )
-        else:
-            properties = kwargs.get("properties")
-
-        self.channel.basic_publish(
-            exchange=exchange,
-            routing_key=routing_key,
-            body=payload,
-            properties=properties,
-        )
 
     def _setup_deadletter_exchange(self):
         """

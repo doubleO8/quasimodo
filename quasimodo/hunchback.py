@@ -120,6 +120,12 @@ def hunchback_client():
         action="append",
         help="Subscriptions",
     )
+    connection_group.add_argument(
+        "--client_id",
+        dest="client_id",
+        default=None,
+        help="Client ID to be used when connecting",
+    )
 
     amqp_group = parser.add_argument_group("AMQP Connection Options")
     amqp_group_queue = amqp_group.add_mutually_exclusive_group()

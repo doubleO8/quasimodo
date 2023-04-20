@@ -25,14 +25,17 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
 
         self.endpoint = kwargs.get("endpoint", getattr(self, "DEFAULT_ENDPOINT"))
         self.heartbeat_interval = kwargs.get("heartbeat_interval", 60)
-        agent_id = str(uuid.uuid4())
+        client_id = kwargs.get("client_id")
+
+        if client_id is None:
+            client_id = str(uuid.uuid4())
 
         self.exchange_binding_keys = kwargs.get("binding_keys")
 
         self.connected = False
         if self.transport is None:
             self.transport = "websockets"
-        self.client = Client(client_id=agent_id, transport=self.transport)
+        self.client = Client(client_id=client_id, transport=self.transport)
         self.client.ws_set_options(self.endpoint)
         self.client.on_connect = self.__on_connect
         self.client.on_message = self.callback

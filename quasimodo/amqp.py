@@ -37,7 +37,9 @@ class Quasimodo(quasimodo.base.Q):
             self.ssl_options = pika.SSLOptions(self.tls_context, self.host)
 
     def set_credentials(self, username, password):
-        self._credentials = pika.PlainCredentials(username=username, password=password)
+        self._credentials = pika.PlainCredentials(
+            username=username, password=password
+        )
 
     def add_to_queue(
         self,
@@ -81,7 +83,9 @@ class Quasimodo(quasimodo.base.Q):
         )
 
         if arguments:
-            channel.queue_declare(queue=queue, durable=True, arguments=arguments)
+            channel.queue_declare(
+                queue=queue, durable=True, arguments=arguments
+            )
         elif durable:
             channel.queue_declare(queue=queue, durable=True)
         else:
@@ -291,7 +295,9 @@ class QueueWorkerSkeleton(Quasimodo):
             exchange=exchange_name, exchange_type="direct", durable=True
         )
 
-        self.log.debug("Setting up deadletter queue {:s}".format(deadletter_name))
+        self.log.debug(
+            "Setting up deadletter queue {:s}".format(deadletter_name)
+        )
         self.channel.queue_declare(queue=deadletter_name, durable=True)
 
         arguments = {
@@ -321,7 +327,9 @@ class QueueWorkerSkeleton(Quasimodo):
                 "; ".join(sorted(self.exchange_binding_keys))
             )
         self.log.debug(
-            "The monkeys are listening to {:s} {:s}".format(net_loc, listening_to)
+            "The monkeys are listening to {:s} {:s}".format(
+                net_loc, listening_to
+            )
         )
 
         self.channel.start_consuming()
@@ -350,7 +358,9 @@ class QueueWorkerSkeleton(Quasimodo):
 
         if self.verbose:
             self.log.info("Received    S{:s}".format(pprint.pformat(body)))
-            self.log.info(" properties {:s}".format(pprint.pformat(properties)))
+            self.log.info(
+                " properties {:s}".format(pprint.pformat(properties))
+            )
             self.log.info(" channel    {:s}".format(pprint.pformat(channel)))
             self.log.info(" method     {:s}".format(pprint.pformat(method)))
 
@@ -397,7 +407,9 @@ class QueueWorkerSkeleton(Quasimodo):
             channel.basic_ack(delivery_tag=method.delivery_tag)
         else:
             self.log.warning(
-                "{!s}: Failure, Abort. requeue={!r}".format(self.identifier, requeue)
+                "{!s}: Failure, Abort. requeue={!r}".format(
+                    self.identifier, requeue
+                )
             )
             self.log.info("payload:")
             self.log.info("-" * 40)
@@ -405,7 +417,9 @@ class QueueWorkerSkeleton(Quasimodo):
             self.log.info("~" * 40)
 
             if not self.deadletter_support:
-                channel.basic_nack(delivery_tag=method.delivery_tag, requeue=requeue)
+                channel.basic_nack(
+                    delivery_tag=method.delivery_tag, requeue=requeue
+                )
             else:
                 delivery_tag = method.delivery_tag
                 requeue = False
@@ -414,7 +428,9 @@ class QueueWorkerSkeleton(Quasimodo):
                         delivery_tag=delivery_tag, requeue=requeue
                     )
                 )
-                channel.basic_reject(delivery_tag=delivery_tag, requeue=requeue)
+                channel.basic_reject(
+                    delivery_tag=delivery_tag, requeue=requeue
+                )
 
         if self.max_consumed_messages != -1:
             if self.consumed_count >= self.max_consumed_messages:
@@ -443,7 +459,8 @@ class QueueWorkerSkeleton(Quasimodo):
             self.log.info(mfg)
 
             pika_properties = pika.BasicProperties(
-                correlation_id=properties.correlation_id, content_type=MIMETYPE_JSON
+                correlation_id=properties.correlation_id,
+                content_type=MIMETYPE_JSON,
             )
 
             try:

@@ -21,7 +21,8 @@ class Q(object):
         username = kwargs.get("username", getattr(self, "DEFAULT_USERNAME"))
         password = kwargs.get("password", getattr(self, "DEFAULT_PASSWORD"))
         self.heartbeat_interval = kwargs.get(
-            "heartbeat_interval", getattr(self, "DEFAULT_HEARTBEAT_INTERVAL", 60)
+            "heartbeat_interval",
+            getattr(self, "DEFAULT_HEARTBEAT_INTERVAL", 60),
         )
         self.set_credentials(username, password)
         self.verbose = kwargs.get("verbose", 0)
@@ -29,7 +30,9 @@ class Q(object):
         self.autorun = kwargs.get("autorun", False)
         self.identifier = kwargs.get(
             "identifier",
-            "Q-{:s}/{!s}".format(self.__class__.__name__, quasimodo.__version__),
+            "Q-{:s}/{!s}".format(
+                self.__class__.__name__, quasimodo.__version__
+            ),
         )
 
         if kwargs.get("tls_context"):
@@ -49,7 +52,9 @@ class Q(object):
                     self.tls_context.set_alpn_protocols(["x-amzn-mqtt-ca"])
 
                 self.tls_context.load_verify_locations(cafile=cafile)
-                self.tls_context.load_cert_chain(certfile=certfile, keyfile=keyfile)
+                self.tls_context.load_cert_chain(
+                    certfile=certfile, keyfile=keyfile
+                )
 
     def __str__(self):
         portions = [

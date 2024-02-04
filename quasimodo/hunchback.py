@@ -146,7 +146,11 @@ def hunchback_client():
 
     tls_group = parser.add_argument_group("TLS Options")
     tls_group.add_argument(
-        "--no-tls", dest="tls", default=True, action="store_false", help="Disable TLS"
+        "--no-tls",
+        dest="tls",
+        default=True,
+        action="store_false",
+        help="Disable TLS",
     )
     tls_group.add_argument(
         "--tls-ca",
@@ -209,7 +213,9 @@ def hunchback_client():
         impl = ApeDumper(**kwargs)
     else:
         raise ValueError(
-            "Implementation for {!r} is not available!".format(cli_args.flavour)
+            "Implementation for {!r} is not available!".format(
+                cli_args.flavour
+            )
         )
 
     if cli_args.dry_run:

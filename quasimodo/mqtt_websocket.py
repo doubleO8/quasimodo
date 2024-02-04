@@ -23,7 +23,9 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
         quasimodo.base.Q.__init__(self, *args, **kwargs)
         self.log = logging.getLogger(__name__)
 
-        self.endpoint = kwargs.get("endpoint", getattr(self, "DEFAULT_ENDPOINT"))
+        self.endpoint = kwargs.get(
+            "endpoint", getattr(self, "DEFAULT_ENDPOINT")
+        )
         self.heartbeat_interval = kwargs.get("heartbeat_interval", 60)
         client_id = kwargs.get("client_id")
 
@@ -59,7 +61,9 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
             if not self.exchange_binding_keys:
                 self.exchange_binding_keys = self.DEFAULT_BINDING_KEYS
                 self.log.warning(
-                    "Using default binding keys {!r}".format(self.exchange_binding_keys)
+                    "Using default binding keys {!r}".format(
+                        self.exchange_binding_keys
+                    )
                 )
 
             for binding_key in self.exchange_binding_keys:
@@ -72,7 +76,9 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
             print(repr(message.payload))
             return
 
-        self.handle_request(payload, client=client, userdata=userdata, message=message)
+        self.handle_request(
+            payload, client=client, userdata=userdata, message=message
+        )
 
     def __on_subscribe(self, client, userdata, mid, granted_qos):
         self.log.debug("on subscribe ...")
@@ -82,7 +88,9 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
         # print(granted_qos)
 
     def run(self):
-        self.client.connect(self.host, self.port, keepalive=self.heartbeat_interval)
+        self.client.connect(
+            self.host, self.port, keepalive=self.heartbeat_interval
+        )
         self.client.loop_start()
 
         self._start_consuming()
@@ -108,7 +116,9 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
         )
 
         self.log.debug(
-            "The monkeys are listening to {:s} {:s}".format(net_loc, listening_to)
+            "The monkeys are listening to {:s} {:s}".format(
+                net_loc, listening_to
+            )
         )
 
         while True:
@@ -122,7 +132,9 @@ class QueueWorkerSkeletonTT(quasimodo.base.Q):
         if self.tls_context:
             sp_client.tls_set_context(self.tls_context)
         sp_client.username_pw_set(self.credentials[0], self.credentials[1])
-        sp_client.connect(self.host, self.port, keepalive=self.heartbeat_interval)
+        sp_client.connect(
+            self.host, self.port, keepalive=self.heartbeat_interval
+        )
 
         sp_client.loop_start()
 

@@ -8,7 +8,7 @@ class Monkey(QueueWorkerSkeleton):
     def _handle_request(self, payload, **kwargs):
         success = True
         delivery_method = kwargs.get("method")
-        content_type = 'unknown'
+        content_type = "unknown"
 
         try:
             content_type = kwargs.get("properties").content_type
@@ -21,16 +21,15 @@ class Monkey(QueueWorkerSkeleton):
                     "{exchange}/{routing_key} [{content_type}]".format(
                         exchange=delivery_method.exchange,
                         routing_key=delivery_method.routing_key,
-                        content_type=content_type
-                    ))
+                        content_type=content_type,
+                    )
+                )
             except Exception:
                 pass
 
         self.log_data_dump(payload)
 
-        return {
-            "success": success
-        }
+        return {"success": success}
 
 
 class Ape(QueueWorkerSkeletonTT):
@@ -40,13 +39,12 @@ class Ape(QueueWorkerSkeletonTT):
         if kwargs.get("message"):
             message_obj = kwargs.get("message")
             try:
-                self.log.info("{routing_key}".format(
-                    routing_key=message_obj.topic))
+                self.log.info(
+                    "{routing_key}".format(routing_key=message_obj.topic)
+                )
             except Exception:
                 pass
 
         self.log_data_dump(payload)
 
-        return {
-            "success": success
-        }
+        return {"success": success}
